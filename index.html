@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A beautiful, interactive romantic friendship card with celebration animations">
+    <title>Are You My Friend?</title>
+    <style>
+        /* ============================================
+           GLOBAL STYLES & RESET
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Georgia', 'Garamond', serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fdf9f0 0%, #f5ede3 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           SCREEN 1: QUESTION & BUTTONS
+           ============================================ */
+        #screen1 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 20px;
+            gap: 60px;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        #screen1.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .question {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #5a4a42;
+            text-align: center;
+            line-height: 1.4;
+            font-family: 'Georgia', serif;
+            max-width: 90%;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .button-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 50;
+        }
+
+        /* ============================================
+           BUTTONS - UNIVERSAL
+           ============================================ */
+        button {
+            padding: 16px 40px;
+            font-size: 18px;
+            font-family: 'Georgia', serif;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        button:focus {
+            outline: 2px solid rgba(212, 165, 116, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+           YES BUTTON
+           ============================================ */
+        #yesBtn {
+            background: linear-gradient(135deg, #d4a574 0%, #c89968 100%);
+            color: white;
+            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+            position: relative;
+            z-index: 51;
+        }
+
+        #yesBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(212, 165, 116, 0.4);
+        }
+
+        #yesBtn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(212, 165, 116, 0.3);
+        }
+
+        #yesBtn:focus {
+            outline: 2px solid #c89968;
+            outline-offset: 3px;
+        }
+
+        /* ============================================
+           NO BUTTON - EVASIVE
+           ============================================ */
+        #noBtn {
+            background: linear-gradient(135deg, #e8c4b8 0%, #deb3a3 100%);
+            color: #5a4a42;
+            box-shadow: 0 8px 20px rgba(200, 140, 130, 0.2);
+            position: fixed;
+            z-index: 100;
+            top: 0;
+            left: 0;
+        }
+
+        #noBtn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 10px 28px rgba(200, 140, 130, 0.3);
+        }
+
+        #noBtn:active {
+            transform: scale(1.04);
+        }
+
+        /* ============================================
+           SCREEN 2: VINTAGE LETTER
+           ============================================ */
+        #screen2 {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            padding: 40px 20px;
+            opacity: 0;
+            transition: opacity 0.8s ease-out;
+            background: linear-gradient(135deg, #fdf9f0 0%, #f5ede3 100%);
+            overflow-y: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        #screen2.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .letter-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .letter-container {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .letter-header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(212, 165, 116, 0.3);
+        }
+
+        .letter-title {
+            font-size: 1.5rem;
+            color: #8b7355;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Georgia', serif;
+        }
+
+        .vintage-decoration-top {
+            text-align: center;
+            font-size: 2rem;
+            color: #c89968;
+            opacity: 0.6;
+            margin: 20px 0;
+            letter-spacing: 8px;
+        }
+
+        .letter-content {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(212, 165, 116, 0.25);
+            border-radius: 8px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .letter-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(222, 179, 163, 0.05) 0%, transparent 50%);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .letter-text {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            line-height: 1.9;
+            color: #5a4a42;
+            font-family: 'Georgia', serif;
+            letter-spacing: 0.4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vintage-decoration-bottom {
+            text-align: center;
+            font-size: 2rem;
+            color: #c89968;
+            opacity: 0.6;
+            margin: 20px 0;
+            letter-spacing: 8px;
+        }
+
+        .letter-footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #8b7355;
+            font-size: 0.95rem;
+            opacity: 0.7;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+
+        /* ============================================
+           SIDE DECORATIONS
+           ============================================ */
+        .side-hearts-left,
+        .side-hearts-right {
+            display: none;
+            position: fixed;
+            font-size: 1.8rem;
+            opacity: 0.35;
+            z-index: 1;
+            line-height: 1.2;
+        }
+
+        @media (min-width: 1024px) {
+            .side-hearts-left,
+            .side-hearts-right {
+                display: block;
+            }
+
+            .side-hearts-left {
+                left: 30px;
+                top: 50%;
+                transform: translateY(-50%);
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+            }
+
+            .side-hearts-right {
+                right: 30px;
+                top: 50%;
+                transform: translateY(-50%);
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+            }
+        }
+
+        /* ============================================
+           CELEBRATION PARTICLES & ANIMATIONS
+           ============================================ */
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(-100vh - 100px)) translateX(var(--tx)) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes spin-heart {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            z-index: 1000;
+            will-change: transform, opacity;
+            filter: drop-shadow(0 0 8px rgba(212, 165, 116, 0.3));
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN - TABLET
+           ============================================ */
+        @media (max-width: 768px) {
+            .question {
+                font-size: clamp(1.8rem, 5.5vw, 2.8rem);
+            }
+
+            button {
+                padding: 14px 36px;
+                font-size: 17px;
+            }
+
+            .button-container {
+                gap: 30px;
+            }
+
+            #screen1 {
+                gap: 50px;
+                padding: 20px 15px;
+            }
+
+            .letter-content {
+                padding: 35px 25px;
+            }
+
+            .letter-text {
+                font-size: clamp(0.95rem, 2.8vw, 1.1rem);
+                line-height: 1.75;
+            }
+
+            #screen2 {
+                padding: 30px 15px;
+            }
+
+            .letter-container {
+                gap: 35px;
+            }
+
+            .vintage-decoration-top,
+            .vintage-decoration-bottom {
+                font-size: 1.8rem;
+                letter-spacing: 4px;
+            }
+
+            .letter-title {
+                font-size: 1.3rem;
+                letter-spacing: 2px;
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN - MOBILE
+           ============================================ */
+        @media (max-width: 480px) {
+            .question {
+                font-size: clamp(1.5rem, 5vw, 2.3rem);
+                letter-spacing: 1px;
+            }
+
+            button {
+                padding: 13px 30px;
+                font-size: 15px;
+            }
+
+            .button-container {
+                gap: 20px;
+            }
+
+            #screen1 {
+                gap: 40px;
+                padding: 20px 12px;
+            }
+
+            .letter-content {
+                padding: 25px 18px;
+                border-radius: 6px;
+            }
+
+            .letter-text {
+                font-size: 0.95rem;
+                line-height: 1.65;
+                letter-spacing: 0.2px;
+            }
+
+            #screen2 {
+                padding: 25px 12px;
+            }
+
+            .letter-container {
+                gap: 30px;
+            }
+
+            .vintage-decoration-top,
+            .vintage-decoration-bottom {
+                font-size: 1.6rem;
+                letter-spacing: 2px;
+                margin: 12px 0;
+            }
+
+            .letter-header {
+                padding: 20px 0;
+                border-bottom: 1px solid rgba(212, 165, 116, 0.3);
+            }
+
+            .letter-title {
+                font-size: 1.1rem;
+                letter-spacing: 1.5px;
+            }
+
+            .letter-footer {
+                font-size: 0.85rem;
+                padding: 15px 0;
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN - SHORT SCREENS
+           ============================================ */
+        @media (max-height: 700px) {
+            #screen1 {
+                gap: 35px;
+                min-height: auto;
+                padding: 15px 20px;
+            }
+
+            .question {
+                margin-bottom: 10px;
+            }
+
+            .button-container {
+                gap: 25px;
+            }
+        }
+
+        /* ============================================
+           ACCESSIBILITY & PRINT STYLES
+           ============================================ */
+        @media print {
+            #screen1,
+            button {
+                display: none;
+            }
+
+            #screen2 {
+                display: flex;
+                opacity: 1;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- ================================================
+         SCREEN 1: INTERACTIVE QUESTION
+         ================================================ -->
+    <div id="screen1">
+        <div class="question">Are you my friend</div>
+        <div class="button-container">
+            <button id="yesBtn" aria-label="Yes, I am your friend">Yes</button>
+            <button id="noBtn" aria-label="No button">No</button>
+        </div>
+    </div>
+
+    <!-- ================================================
+         SCREEN 2: VINTAGE FRIENDSHIP LETTER
+         ================================================ -->
+    <div id="screen2">
+        <div class="side-hearts-left">💕 💕 💕 💕 💕 💕</div>
+        <div class="side-hearts-right">💕 💕 💕 💕 💕 💕</div>
+        
+        <div class="letter-wrapper">
+            <div class="letter-container">
+                <div class="letter-header">
+                    <div class="letter-title">✨ A Special Message ✨</div>
+                </div>
+
+                <div class="vintage-decoration-top">
+                    ❤ 🌹 ❤ 🌹 ❤
+                </div>
+
+                <div class="letter-content">
+                    <div class="letter-text">MORE THAN STRANGERS, LESS THAN LOVERS. ONLY TWO HEARTS CARONG FOR EACH OTHER.
+
+YOU WRE A BOOK I DIDN'T WRITE BUT I READ IT A THOUSAND TIMES EVERYDAY.
+
+THEY SAY COMMUNICATION IS KEY BUT EVEN WITHOUT CONVERSATION, ILL ALWAYS BE THERE IF YOU NEED ME.
+
+THANK YOU MY DEAREAST FRIEND. MADE ME FEEL HUMAN AGAIN.</div>
+                </div>
+
+                <div class="vintage-decoration-bottom">
+                    ❤ 🌹 ❤ 🌹 ❤
+                </div>
+
+                <div class="letter-footer">
+                    ~ With all my love ~
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================
+         JAVASCRIPT: INTERACTIVITY & ANIMATIONS
+         ================================================ -->
+    <script>
+        'use strict';
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const screen1 = document.getElementById('screen1');
+        const screen2 = document.getElementById('screen2');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let isAnimating = false;
+        const MIN_BUTTON_OFFSET = 10;
+        const CELEBRATION_DURATION = 1500;
+        const PARTICLES = ['❤', '💕', '✨', '🌹', '💫', '✨', '❤', '💕', '🌸', '✨', '💫', '❤', '🌹', '💕', '✨', '💫', '❤', '💕'];
+
+        // ============================================
+        // NO BUTTON: EVASIVE BEHAVIOR
+        // ============================================
+        
+        /**
+         * Moves the No button to a random position within viewport
+         * Ensures it stays fully visible on screen
+         */
+        function moveNoButton() {
+            if (isAnimating) return;
+
+            const buttonWidth = noBtn.offsetWidth;
+            const buttonHeight = noBtn.offsetHeight;
+            const maxX = Math.max(MIN_BUTTON_OFFSET, window.innerWidth - buttonWidth - MIN_BUTTON_OFFSET);
+            const maxY = Math.max(MIN_BUTTON_OFFSET, window.innerHeight - buttonHeight - MIN_BUTTON_OFFSET);
+
+            const minX = MIN_BUTTON_OFFSET;
+            const minY = MIN_BUTTON_OFFSET;
+
+            const randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            const randomY = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
+        /**
+         * Initialize No button position at bottom-right
+         */
+        function initializeNoButton() {
+            noBtn.style.position = 'fixed';
+            const initialX = Math.max(MIN_BUTTON_OFFSET, window.innerWidth - noBtn.offsetWidth - 30);
+            const initialY = Math.max(MIN_BUTTON_OFFSET, window.innerHeight - noBtn.offsetHeight - 30);
+            noBtn.style.left = initialX + 'px';
+            noBtn.style.top = initialY + 'px';
+        }
+
+        // Desktop interaction
+        noBtn.addEventListener('mouseenter', moveNoButton);
+
+        // Mobile/Touch interaction with debounce
+        let touchTimeout;
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            clearTimeout(touchTimeout);
+            touchTimeout = setTimeout(moveNoButton, 100);
+        });
+
+        // Prevent accidental clicks
+        noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // ============================================
+        // YES BUTTON: CELEBRATION & TRANSITION
+        // ============================================
+
+        /**
+         * Creates celebration particles that float upward
+         */
+        function createCelebrationParticles() {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            PARTICLES.forEach((particle, index) => {
+                setTimeout(() => {
+                    const element = document.createElement('div');
+                    element.className = 'particle';
+                    element.textContent = particle;
+                    element.setAttribute('aria-hidden', 'true');
+
+                    // Calculate position and velocity
+                    const angle = (index / PARTICLES.length) * Math.PI * 2;
+                    const velocity = 2 + Math.random() * 3;
+                    const horizontalShift = Math.cos(angle) * 200 * velocity;
+                    const duration = 2 + Math.random() * 1;
+
+                    element.style.left = centerX + 'px';
+                    element.style.top = centerY + 'px';
+                    element.style.setProperty('--tx', horizontalShift + 'px');
+                    element.style.animation = `float-up ${duration}s ease-out forwards`;
+
+                    document.body.appendChild(element);
+
+                    // Cleanup
+                    setTimeout(() => {
+                        if (element && element.parentNode) {
+                            element.remove();
+                        }
+                    }, duration * 1000 + 200);
+                }, index * 40);
+            });
+        }
+
+        /**
+         * Transitions from Screen 1 to Screen 2
+         */
+        function transitionToScreen2() {
+            screen1.classList.add('hidden');
+            setTimeout(() => {
+                screen2.classList.add('visible');
+            }, 50);
+        }
+
+        /**
+         * Main celebration handler
+         */
+        function celebrateAndTransition() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            createCelebrationParticles();
+
+            setTimeout(() => {
+                transitionToScreen2();
+                setTimeout(() => {
+                    isAnimating = false;
+                }, 800);
+            }, CELEBRATION_DURATION);
+        }
+
+        yesBtn.addEventListener('click', celebrateAndTransition);
+        yesBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            celebrateAndTransition();
+        });
+
+        // ============================================
+        // WINDOW EVENTS & RESPONSIVE BEHAVIOR
+        // ============================================
+
+        /**
+         * Handle window resize to keep No button in bounds
+         */
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(initializeNoButton, 150);
+        });
+
+        /**
+         * Handle orientation change for mobile devices
+         */
+        window.addEventListener('orientationchange', () => {
+            setTimeout(initializeNoButton, 300);
+        });
+
+        /**
+         * Prevent double-tap zoom on buttons
+         */
+        document.addEventListener('touchend', (e) => {
+            if (e.target === yesBtn || e.target === noBtn) {
+                e.preventDefault();
+            }
+        });
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeNoButton);
+        } else {
+            initializeNoButton();
+        }
+
+        // Fallback initialization
+        setTimeout(initializeNoButton, 100);
+
+        // ============================================
+        // DEPLOYMENT NOTES
+        // ============================================
+        /*
+        
+        DEPLOYMENT INSTRUCTIONS:
+        ========================
+
+        This is a single-file, framework-free website that requires zero build process.
+
+        LOCAL TESTING:
+        1. Save this file as index.html
+        2. Double-click it to open in your default browser
+        3. Or: right-click → Open with → Choose your browser
+        4. Works offline, works everywhere!
+
+        DEPLOY TO GITHUB PAGES (Free, Permanent):
+        1. Create a GitHub account at github.com
+        2. Create a new repository named: YOUR_USERNAME.github.io
+        3. Upload this index.html file to the repository
+        4. Your site goes live at: https://YOUR_USERNAME.github.io
+        5. Share this link anywhere!
+
+        DEPLOY TO NETLIFY (Free, Easy):
+        1. Go to netlify.com
+        2. Sign up (use GitHub, Google, or email)
+        3. Click "Deploy manually"
+        4. Drag and drop this index.html file
+        5. Netlify creates a live link instantly
+        6. Share the link immediately!
+
+        DEPLOY TO VERCEL (Free, Professional):
+        1. Go to vercel.com
+        2. Create an account
+        3. Create a new project and upload index.html
+        4. Get a production URL instantly
+        5. Share with anyone!
+
+        DEPLOY TO CLOUDFLARE PAGES (Free, Fast):
+        1. Go to pages.cloudflare.com
+        2. Connect your GitHub or upload directly
+        3. Upload this index.html
+        4. Deployed instantly with global CDN
+
+        SHARING:
+        - Send the deployed link via text, email, WhatsApp, etc.
+        - Works on desktop, tablet, and mobile
+        - Works in all modern browsers (Chrome, Firefox, Safari, Edge)
+        - No installation required for the recipient
+        - No dependencies to install
+
+        TECHNICAL FEATURES:
+        ✓ Pure HTML5 + CSS3 + Vanilla JavaScript
+        ✓ No npm, no build tools, no frameworks
+        ✓ Mobile-first responsive design
+        ✓ Touch-friendly interface
+        ✓ Smooth animations (GPU-accelerated)
+        ✓ Semantic HTML for accessibility
+        ✓ Works offline
+        ✓ ~50KB file size
+
+        */
+    </script>
+</body>
+</html>
